@@ -1,5 +1,17 @@
 import fetch from 'node-fetch';
+import dotenv from 'dotenv';
+import Twit from 'twit';
+
 const URL = 'https://api.covid19tracker.ca/summary';
+
+dotenv.config();
+
+const T = new Twit({
+  consumer_key: process.env.API_KEY,
+  consumer_secret: process.env.API_SECRET_KEY,
+  access_token: process.env.ACCESS_TOKEN,
+  access_token_secret: process.env.ACCESS_TOKEN_SECRET,
+});
 
 const full = '▓';
 const partial = '▒';
@@ -39,14 +51,28 @@ function getTweetText(percentage) {
     }
   });
 
-  return text + ` ${percentage}%`;
+  return 'Canadians with at least one dose: \n\n' + text + ` ${percentage}%`;
 }
 
 async function main() {
   const percentage = await getPercentage();
   const tweetText = getTweetText(percentage);
 
-  console.log(tweetText);
+  try {
+    T.post(
+      'statuses/update',
+      {status: tweetText},
+      function (err, data, response) {
+        if (err) {
+          console.log(err);
+        } else {
+          console.log('Tweet posted!');
+        }
+      }
+    );
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 main();
