@@ -51,7 +51,12 @@ function getTweetText(percentage) {
     }
   });
 
-  return 'Canadians with at least one dose: \n\n' + text + ` ${percentage}%`;
+  return (
+    'Canadians with at least one dose: \n\n' +
+    text +
+    ` ${percentage}%` +
+    '\n\n#COVID19 #COVID19Canada'
+  );
 }
 
 async function main() {
