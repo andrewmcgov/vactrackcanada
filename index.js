@@ -19,27 +19,36 @@ const empty = '░';
 const length = 15;
 const stepArray = [...Array(length).keys()].map((el) => el + 1);
 const stepPercentage = 100 / length;
+const population = 38008005;
 
-async function getPercentage() {
+async function getPercentages() {
   try {
     const res = await fetch(URL);
     const resData = await res.json();
     const data = resData.data[0];
 
-    const percentage = (
-      ((data.total_vaccinations - data.total_vaccinated) / 38008005) *
+    const atLeastOneDose = (
+      ((data.total_vaccinations - data.total_vaccinated) / population) *
       100
     ).toFixed(2);
 
-    return percentage;
+    const fullyVaccinated = (
+      (data.total_vaccinated / population) *
+      100
+    ).toFixed(2);
+
+    return {atLeastOneDose, fullyVaccinated};
   } catch (err) {
     console.error(err);
   }
 }
 
-function getTweetText(percentage) {
+function getTweetText(percentage, fullyVaccinated) {
   const completedSteps = percentage / stepPercentage;
   let text = '';
+  const startText = fullyVaccinated
+    ? 'Canadians fully vaccinated: \n\n'
+    : 'Canadians with at least one dose: \n\n';
 
   stepArray.forEach((currentStep) => {
     if (currentStep < completedSteps) {
@@ -51,27 +60,36 @@ function getTweetText(percentage) {
     }
   });
 
-  return (
-    'Canadians with at least one dose: \n\n' +
-    text +
-    ` ${percentage}%` +
-    '\n\n#COVID19 #COVID19Canada'
-  );
+  return startText + text + ` ${percentage}%` + '\n\n#COVID19 #COVID19Canada';
 }
 
 async function main() {
-  const percentage = await getPercentage();
-  const tweetText = getTweetText(percentage);
+  const {atLeastOneDose, fullyVaccinated} = await getPercentages();
+  const atLeastOneDoseText = getTweetText(atLeastOneDose, false);
+  const fullyVaccinatedText = getTweetText(fullyVaccinated, true);
 
   try {
     T.post(
       'statuses/update',
-      {status: tweetText},
+      {status: atLeastOneDoseText},
       function (err, data, response) {
         if (err) {
+          console.log('Error posting at least one dose tweet.');
           console.log(err);
         } else {
-          console.log('Tweet posted!');
+          console.log('At least one dose tweet posted!');
+        }
+      }
+    );
+    T.post(
+      'statuses/update',
+      {status: fullyVaccinatedText},
+      function (err, data, response) {
+        if (err) {
+          console.log('Error posting fully vaccinated tweet.');
+          console.log(err);
+        } else {
+          console.log('Fully vaccinated tweet posted!');
         }
       }
     );
