@@ -19,7 +19,7 @@ const empty = '░';
 const length = 15;
 const stepArray = [...Array(length).keys()].map((el) => el + 1);
 const stepPercentage = 100 / length;
-const population = 38008005;
+const population = 38131104;
 
 async function getPercentages() {
   try {
