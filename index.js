@@ -19,7 +19,7 @@ const empty = '░';
 const length = 15;
 const stepArray = [...Array(length).keys()].map((el) => el + 1);
 const stepPercentage = 100 / length;
-const population = 38131104;
+const population = 38246108;
 
 async function getPercentages() {
   try {
@@ -28,7 +28,10 @@ async function getPercentages() {
     const data = resData.data[0];
 
     const atLeastOneDose = (
-      ((data.total_vaccinations - data.total_vaccinated) / population) *
+      ((data.total_vaccinations -
+        data.total_vaccinated -
+        data.total_boosters_1) /
+        population) *
       100
     ).toFixed(2);
 
