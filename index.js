@@ -40,18 +40,32 @@ async function getPercentages() {
       100
     ).toFixed(2);
 
-    return {atLeastOneDose, fullyVaccinated};
+    const boosted = ((data.total_boosters_1 / population) * 100).toFixed(2);
+
+    return {atLeastOneDose, fullyVaccinated, boosted};
   } catch (err) {
     console.error(err);
   }
 }
 
-function getTweetText(percentage, fullyVaccinated) {
+function getTweetText(percentage, doseType) {
   const completedSteps = percentage / stepPercentage;
   let text = '';
-  const startText = fullyVaccinated
-    ? 'Canadians fully vaccinated: \n'
-    : 'Canadians with at least one dose: \n';
+  let startText;
+
+  switch (doseType) {
+    case 'partial':
+      startText = 'Canadians with at least one dose: \n';
+      break;
+    case 'full':
+      startText = 'Canadians fully vaccinated: \n';
+      break;
+    case 'boosted':
+      startText = 'Canadians boosted: \n';
+      break;
+    default:
+      break;
+  }
 
   stepArray.forEach((currentStep) => {
     if (currentStep < completedSteps) {
@@ -67,14 +81,17 @@ function getTweetText(percentage, fullyVaccinated) {
 }
 
 async function main() {
-  const {atLeastOneDose, fullyVaccinated} = await getPercentages();
-  const atLeastOneDoseText = getTweetText(atLeastOneDose, false);
-  const fullyVaccinatedText = getTweetText(fullyVaccinated, true);
+  const {atLeastOneDose, fullyVaccinated, boosted} = await getPercentages();
+  const atLeastOneDoseText = getTweetText(atLeastOneDose, 'partial');
+  const fullyVaccinatedText = getTweetText(fullyVaccinated, 'full');
+  const boostedText = getTweetText(boosted, 'boosted');
   const tweetText =
     atLeastOneDoseText +
     '\n\n' +
     fullyVaccinatedText +
-    '\n\n#COVID19Canada #vaccine';
+    '\n\n' +
+    boostedText +
+    '\n\n#COVID19Canada #vaccine #getboosted';
 
   try {
     T.post(
